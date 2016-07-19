@@ -444,8 +444,24 @@ public class VideoEditor extends CordovaPlugin {
             orientation = (videoWidth < videoHeight) ? "portrait" : "landscape";
         }
 
-        double duration = Double.parseDouble(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)) / 1000.0;
-        long bitrate = Long.parseLong(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE));
+        //double duration = Double.parseDouble(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)) / 1000.0;
+        //long bitrate = Long.parseLong(mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE));
+        
+        double duration = -1;
+		String strDuration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+
+		if (strDuration != null)
+		{
+			duration = Double.parseDouble(strDuration) / 1000.0;
+		}
+        
+		String strBitrate = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
+		long bitrate = -1;
+
+		if (strBitrate != null)
+		{
+			bitrate = Long.parseLong(strBitrate);
+		}
 
         JSONObject response = new JSONObject();
         response.put("width", videoWidth);
