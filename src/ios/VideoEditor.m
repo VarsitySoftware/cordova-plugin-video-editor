@@ -356,6 +356,7 @@
     }
 
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+	[dict setValue:filePath forKey:@"fileURI"];
     [dict setObject:[NSNumber numberWithFloat:videoWidth] forKey:@"width"];
     [dict setObject:[NSNumber numberWithFloat:videoHeight] forKey:@"height"];
     [dict setValue:videoOrientation forKey:@"orientation"];
