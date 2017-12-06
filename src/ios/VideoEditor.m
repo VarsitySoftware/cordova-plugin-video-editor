@@ -291,7 +291,13 @@
     if ([UIImageJPEGRepresentation(thumbnail, thumbQuality) writeToFile:outputFilePath atomically:YES])
     {
         NSLog(@"path to your video thumbnail: %@", outputFilePath);
-        [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:outputFilePath] callbackId:command.callbackId];
+      	//[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:outputFilePath] callbackId:command.callbackId];
+
+      	NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+	[dict setValue:srcVideoPath forKey:@"sourceURI"];
+      	[dict setValue:outputFilePath forKey:@"destinationURI"];
+      
+      	[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict] callbackId:command.callbackId];
     }
     else
     {
