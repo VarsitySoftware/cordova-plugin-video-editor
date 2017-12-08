@@ -3,11 +3,16 @@
 //
 //  Created by Josh Bavari on 01-14-2014
 //  Modified by Ross Martin on 01-29-2015
+//  Modified by John Weaver on 12-7-2017
 //
 
 #import <Cordova/CDV.h>
 #import "VideoEditor.h"
 #import "SDAVAssetExportSession.h"
+
+static inline CGFloat RadiansToDegrees(CGFloat radians) {
+  return radians * 180 / M_PI;
+};
 
 @interface VideoEditor ()
 
@@ -272,6 +277,9 @@
     float quality = ([options objectForKey:@"quality"]) ? [[options objectForKey:@"quality"] floatValue] : 100;
     float thumbQuality = quality * 1.0 / 100;
 
+    NSLog(@"path to your video file: %@", srcVideoPath);
+    NSLog(@"path to your output file: %@", outputFileName);
+
     int32_t preferredTimeScale = 600;
     CMTime time = CMTimeMakeWithSeconds(atTime, preferredTimeScale);
 
@@ -290,14 +298,15 @@
     // write out the thumbnail
     if ([UIImageJPEGRepresentation(thumbnail, thumbQuality) writeToFile:outputFilePath atomically:YES])
     {
-        NSLog(@"path to your video thumbnail: %@", outputFilePath);
-      	//[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:outputFilePath] callbackId:command.callbackId];
+      NSLog(@"path to your video thumbnail: %@", outputFilePath);
+      //[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:outputFilePath] callbackId:command.callbackId];
 
-      	NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-	[dict setValue:srcVideoPath forKey:@"sourceURI"];
-      	[dict setValue:outputFilePath forKey:@"destinationURI"];
+      NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+	    [dict setValue:srcVideoPath forKey:@"sourceURI"];
+      [dict setValue:outputFilePath forKey:@"destinationURI"];
       
-      	[self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict] callbackId:command.callbackId];
+      [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict] callbackId:command.callbackId];
+
     }
     else
     {
@@ -361,16 +370,28 @@
         }
     }
 
+    int preferredAngle = (int)[self getAngle:track];
+
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-	[dict setValue:filePath forKey:@"fileURI"];
+	  [dict setValue:filePath forKey:@"fileURI"];
     [dict setObject:[NSNumber numberWithFloat:videoWidth] forKey:@"width"];
     [dict setObject:[NSNumber numberWithFloat:videoHeight] forKey:@"height"];
-    [dict setValue:videoOrientation forKey:@"orientation"];
+    [dict setValue:videoOrientation forKey:@"orientation"];    
+    [dict setObject:[NSNumber numberWithInt:preferredAngle] forKey:@"preferredAngle"];
     [dict setValue:[NSNumber numberWithFloat:track.timeRange.duration.value / 600.0] forKey:@"duration"];
     [dict setObject:[NSNumber numberWithLongLong:size] forKey:@"size"];
     [dict setObject:[NSNumber numberWithFloat:track.estimatedDataRate] forKey:@"bitrate"];
 
     [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:dict] callbackId:command.callbackId];
+}
+
+- (int*)getAngle: (AVAssetTrack *)videoTrack
+{
+
+    CGAffineTransform txf = [videoTrack preferredTransform];
+    CGFloat videoAngleInDegree  = RadiansToDegrees(atan2(txf.b, txf.a));
+
+    return ((int)videoAngleInDegree);	  
 }
 
 /**
@@ -507,6 +528,9 @@
 // modified version of http://stackoverflow.com/a/21230645/1673842
 - (UIImage *)generateThumbnailImage: (NSString *)srcVideoPath atTime:(CMTime)time
 {
+
+    NSLog(@"AGAIN: path to your video file: %@", srcVideoPath);
+
     NSURL *url = [NSURL fileURLWithPath:srcVideoPath];
 
     if ([srcVideoPath rangeOfString:@"://"].location == NSNotFound)
